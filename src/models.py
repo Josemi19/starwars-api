@@ -1,3 +1,4 @@
+from unicodedata import category
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -32,26 +33,17 @@ class Favorito(db.Model):
     usuario = db.relationship("Usuario", back_populates = "favorito")
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable = False)
 
-    planeta = db.relationship("Planeta")
-    planeta_id = db.Column(db.Integer, db.ForeignKey("planeta.id"), nullable = True)
-
-    personaje = db.relationship("Personaje")
-    personaje_id = db.Column(db.Integer, db.ForeignKey("personaje.id"), nullable = True)
-
-    # __table_args__= (db.UniqueConstraint{
-    #     user_id,
-    #     planeta_id,
-    #     personaje_id,
-    #     name="debe tener una sola coincidencia"
-    # },)
+    category = db.Column(db.String(50))
+    name = db.Column(db.String(50))
 
 
     def serialize(self):
         return {
             "id": self.id,
             "usuario_id": self.usuario_id,
-            "planeta_id": self.planeta_id,
-            "personaje_id": self.personaje_id
+            "category" : self.category,
+            "name" : self.name
+
         }
 
 class Planeta(db.Model):

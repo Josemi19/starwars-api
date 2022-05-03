@@ -89,87 +89,102 @@ def handle_favs(user_id):
             "msg":"Not Found"
         }), 404
 
-@app.route('/users/<int:user_id>/favorites/people/<int:people_id>', methods = ['POST', 'DELETE'])
-def add_people(user_id, people_id):
+@app.route('/user/<int:user_id>/favorites/<category>/<int:name_id>', methods = ['POST'])
+def add_favs(category, name_id, user_id):
     body = request.json
-    user = body.get("usuario_id", None)
-    person = body.get("personaje_id", None)
-    if user and person is not None:
-        if request.method == 'POST':  #METODO POST
+    user = body.get("user_id", None)
+    category = body.get("category", None)
+    name = body.get("name_id", None)
+    if category and name and user is not None:
+        if request.method == 'POST':
             user = Usuario.query.filter_by(id = user_id).first()
             if user is not None:
-                person = Personaje.query.filter_by(id = people_id).first()
-                if person is not None:
-                    fav = Favorito.query.filter_by(personaje_id = people_id).first()
-                    if fav is not None:
-                        return jsonify({
-                            "msg":"Already exist"
-                        })
-                    else:
-                        try:
-                            new_favorite = Favorito(
-                                usuario_id = user.id,
-                                personaje_id = person.id
-                            )
-                            db.session.add(new_favorite)
-                            db.session.commit()
-                            return f"Agregado {person.id}", 200
-                        except Exception as error:
-                            db.session.rollback()
-                            return jsonify(error.args), 500
+                if category == "Planeta" or category == "Personaje":
+                    if category == "Planeta":
+                        name = Planeta.query.filter_by(id = name_id).first()
+                        if name is not None:                                           # AGREGAR PLANETA
+                            fav = Favorito.query.filter_by(name = name.name).first()
+                            if fav is not None:
+                                return jsonify({
+                                    "msg":"Already exist"
+                                })
+                            else:
+                                try:
+                                    new_fav = Favorito(
+                                        usuario_id = user.id,
+                                        category = category,
+                                        name = name.name
+                                    )
+                                    db.session.add(new_fav)
+                                    db.session.commit()
+                                    return "Agregado", 201
+                                except Exception as error:
+                                    db.session.rollback()
+                                    return jsonify(error.args), 500
+                        else:
+                            return jsonify({
+                                "msg": "Planeta no existe"
+                            }), 404
+                    if category == "Personaje":                     # AGREGAR PERSONAJE
+                        name = Personaje.query.filter_by(id = name_id).first()
+                        if name is not None:
+                            fav = Favorito.query.filter_by(name = name.name).first()
+                            if fav is not None:
+                                return jsonify({
+                                    "msg":"Already exist"
+                                })
+                            else:
+                                try:
+                                    new_fav = Favorito(
+                                        usuario_id = user.id,
+                                        category = category,
+                                        name = name.name
+                                    )
+                                    db.session.add(new_fav)
+                                    db.session.commit()
+                                    return "Agregado", 201
+                                except Exception as error:
+                                    db.session.rollback()
+                                    return jsonify(error.args), 500
+                        else:
+                            return jsonify({
+                                "msg": "Planeta no existe"
+                            }), 404
                 else:
                     return jsonify({
-                        "msg":"Person doesn't exist"
-                    })
+                        "msg":"Category must be Planeta or Personaje"
+                    }), 404
             else:
                 return jsonify({
-                        "msg":"User doesn't exist"
-                })
-        if request.method == 'DELETE':  # METODO DELETE
-            user = Usuario.query.filter_by(id = user_id).first()
-            if user is not None:
-                    fav = Favorito.query.filter_by(personaje_id = people_id).first()
-                    if fav is not None:
-                        try:
-                            delete_favorite = Favorito(
-                                usuario_id = user.id,
-                                personaje_id = person.id
-                            )
-                            db.session.delete(delete_favorite)
-                            db.session.commit()
-                            return f"Eliminado {person}", 200
-                        except Exception as error:
-                            db.session.rollback()
-                            return jsonify(error.args), 500
-                    else:
-                        return jsonify({
-                            "msg":"Is not on the list"
-                        })
-            else:
-                return jsonify({
-                        "msg":"User doesn't exist"
-                })
+                    "msg":"Usuario no existe"
+                }), 404
     else:
         return jsonify({
-            "msg":"Something happened"
+            "msg": "Something Happened"
         })
 
-    
-    return "hola"
-
-
-
-@app.route('/favorites/planets/<int:id>', methods = ['POST', 'DELETE'])
-def add_planets(id):
-    if request.method == 'POST':
-        response = {
-            "msg": f'Agregar este planeta {id}'
-        }
-    if request.method == 'DELETE':
-        response = {
-            "msg": f'Eliminar este planeta {id}'
-        }
-    return jsonify(response), 200
+@app.route('/favorites/<int:fav_id>', methods = ['DELETE'])
+def delete_favs(fav_id):
+    body = request.json
+    fav = body.get("fav_id", None)
+    if fav is not None:
+        fav = Favorito.query.filter_by(id = fav_id).first()
+        if fav is not None:
+            try:
+                db.session.delete(fav)
+                db.session.commit()
+                return "Eliminado", 200
+            except Exception as error:
+                db.session.rollback()
+                return jsonify(error.args), 500
+        else:
+            return jsonify({
+                "msg": "Favorito no existe"
+            }), 404
+    else:
+        return jsonify({
+            "msg":"Something Happened"
+        }), 400
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
