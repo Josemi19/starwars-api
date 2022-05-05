@@ -10,7 +10,6 @@ class Usuario(db.Model):
 
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
     nombre = db.Column(db.String(50), nullable = False)
     apellido = db.Column(db.String(50), nullable = True)
 
@@ -62,6 +61,10 @@ class Planeta(db.Model):
         return {
             "id": self.id,
             "nombre": self.name,
+            "population": self.population,
+            "climate": self.climate,
+            "terrain": self.terrain,
+            "gravity": self.gravity
         }
 
 class Personaje(db.Model):
@@ -79,5 +82,8 @@ class Personaje(db.Model):
         return {
             "id": self.id,
             "nombre": self.name,
+            "hair_color": self.hair_color,
+            "eye_color": self.eyes_color,
+            "gender":self.gender
         }
 
